@@ -205,9 +205,14 @@ func (sic *ShibuyaIngressController) rewriteURL(r *httputil.ProxyRequest) {
 		log.Error(err)
 		return
 	}
+	// Validate podIP is not empty before creating URL - Go 1.25.1 stricter validation
+	if podIP == "" {
+		log.Errorf("Empty podIP for engine %s, cannot create valid URL", engine)
+		return
+	}
 	target, err := url.Parse(fmt.Sprintf("http://%s", podIP))
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Failed to parse URL for podIP %s: %v", podIP, err)
 		return
 	}
 	out := r.Out
